@@ -44,8 +44,8 @@ function sourceColor(source: string): string {
   return map[source] || 'bg-white/5 text-muted-foreground border-white/10'
 }
 
-export function HorizontalJobCard({ job, isSaved, onClick }: {
-  job: ScoredJob; isSaved: boolean; onClick?: () => void
+export function HorizontalJobCard({ job, onClick }: {
+  job: ScoredJob; onClick?: () => void
 }) {
   const isNew = Date.now() - new Date(job.created_at).getTime() < 86400000
   const showMatch = job.relevanceScore >= 15

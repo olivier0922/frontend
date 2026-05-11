@@ -3,12 +3,11 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useRouter } from 'next/navigation'
+
 
 export function StatusUpdater({ appId, currentStatus }: { appId: string, currentStatus: string }) {
   const [isPending, setIsPending] = useState(false)
   const supabase = createClient()
-  const router = useRouter()
 
   const handleUpdate = async (val: string | null) => {
     if (!val) return

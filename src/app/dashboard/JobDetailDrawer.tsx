@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { X, MapPin, Globe, Building2, ExternalLink, Tag, Clock, Sparkles } from 'lucide-react'
+import { X, MapPin, Globe, Building2, ExternalLink, Tag, Clock } from 'lucide-react'
 import { JobCardActions } from './JobCardActions'
 import type { ScoredJob } from './useJobFilters'
 

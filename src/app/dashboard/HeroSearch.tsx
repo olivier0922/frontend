@@ -21,7 +21,7 @@ const DATE_OPTIONS = [
   { value: '30d', label: 'Month' },
 ]
 
-export function HeroSearch({ filters, setFilters, totalResults, availableSources }: Props) {
+export function HeroSearch({ filters, setFilters, totalResults }: Props) {
   const [localWhat, setLocalWhat] = useState(filters.searchQuery)
 
   useEffect(() => {
