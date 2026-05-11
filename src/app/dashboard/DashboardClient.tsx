@@ -123,7 +123,7 @@ export function DashboardClient({ initialJobs, savedJobIds }: { initialJobs: Job
 
       {/* Job Detail Drawer */}
       <JobDetailDrawer
-        job={selectedJob as any}
+        job={selectedJob}
         isSaved={selectedJob ? savedJobIds.has(selectedJob.id) : false}
         onClose={() => setSelectedJob(null)}
       />

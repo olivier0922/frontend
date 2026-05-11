@@ -6,7 +6,7 @@ import { DashboardClient } from './DashboardClient'
 import { Loader2 } from 'lucide-react'
 
 export default function DashboardPage() {
-  const [jobs, setJobs] = useState<any[]>([])
+  const [jobs, setJobs] = useState<Record<string, unknown>[]>([])
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
@@ -19,7 +19,7 @@ export default function DashboardPage() {
       if (!user) return
 
       // Fetch ALL jobs in batches to overcome Supabase 1000-row default limit
-      let allJobs: any[] = []
+      let allJobs: Record<string, unknown>[] = []
       const batchSize = 1000
       let from = 0
       let hasMore = true

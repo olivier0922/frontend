@@ -6,7 +6,7 @@ import { Building2, Loader2 } from 'lucide-react'
 import { StatusUpdater } from './StatusUpdater'
 
 export default function ApplicationsPage() {
-  const [applications, setApplications] = useState<any[]>([])
+  const [applications, setApplications] = useState<Record<string, unknown>[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 

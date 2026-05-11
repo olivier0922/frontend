@@ -76,8 +76,8 @@ export default function ResumePage() {
       setSkills(result.skills || [])
       setSuccess(true)
 
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err) {
+      setError((err as Error).message || 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -227,7 +227,7 @@ export default function ResumePage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 mt-0.5 font-medium">3</span>
-              Click "AI Match" on any job to see your compatibility score
+              Click &quot;AI Match&quot; on any job to see your compatibility score
             </li>
           </ul>
         </div>
