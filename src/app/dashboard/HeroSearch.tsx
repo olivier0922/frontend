@@ -106,21 +106,7 @@ export function HeroSearch({ filters, setFilters, totalResults }: Props) {
 
         <div className="w-px h-6 bg-white/[0.1]" />
 
-        {/* Strict CV Match Toggle */}
-        <button
-          onClick={() => setFilters(f => ({ ...f, strictCVMatch: !f.strictCVMatch }))}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 text-[12px] font-medium border ${
-            filters.strictCVMatch
-              ? 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/40 shadow-[0_0_10px_rgba(217,70,239,0.2)]'
-              : 'bg-transparent text-muted-foreground border-transparent hover:text-foreground hover:bg-white/[0.05]'
-          }`}
-          title="Filter out jobs that do not match the skills on your uploaded CV"
-        >
-          <div className={`w-2 h-2 rounded-full ${filters.strictCVMatch ? 'bg-fuchsia-400 animate-pulse' : 'bg-muted-foreground/30'}`} />
-          Strict CV Match
-        </button>
 
-        <div className="w-px h-6 bg-white/[0.1]" />
 
         {/* Date Filter Chips */}
         <div className="flex items-center gap-1.5">

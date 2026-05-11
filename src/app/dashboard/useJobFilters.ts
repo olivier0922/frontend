@@ -21,7 +21,6 @@ export interface FilterState {
   searchQuery: string // "What"
   locationQuery: string // "Where"
   remoteOnly: boolean
-  strictCVMatch: boolean
   mapRadiusKm: number
   mapCenter: [number, number] | null
   jobType: string       // "All", "Internship", "Full-time", "New Grad", "Contract"
@@ -34,7 +33,6 @@ export const DEFAULT_FILTERS: FilterState = {
   searchQuery: '',
   locationQuery: '',
   remoteOnly: false,
-  strictCVMatch: true, // Default to true if user has CV! We will enforce it via UI.
   mapRadiusKm: 50,
   mapCenter: null,
   jobType: 'All',
@@ -142,8 +140,8 @@ export function useJobFilters(jobs: Job[], filters: FilterState, userSkills: str
       })
     }
 
-    // 6. Strict CV Matching
-    if (filters.strictCVMatch && userSkills && userSkills.length > 0) {
+    // 6. Strict CV Matching (Always enforced if user has skills)
+    if (userSkills && userSkills.length > 0) {
       const userSkillsLower = userSkills.map(s => s.toLowerCase().trim())
       
       results = results.filter(job => {
@@ -152,24 +150,31 @@ export function useJobFilters(jobs: Job[], filters: FilterState, userSkills: str
         const tags = (job.tags || []).map(t => t.toLowerCase())
         const combinedText = `${title} ${desc} ${tags.join(' ')}`
         
-        // Count how many user skills appear in the job text
         let matchCount = 0
+        let titleMatch = false
+
         for (const skill of userSkillsLower) {
-          // Require word boundary for short skills like 'C' or 'R'
-          if (skill.length <= 2) {
+          const isShort = skill.length <= 2
+          let matchesText = false
+          
+          if (isShort) {
              const regex = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
-             if (regex.test(combinedText)) matchCount++
+             matchesText = regex.test(combinedText)
+             if (regex.test(title) || tags.some(t => regex.test(t))) titleMatch = true
           } else {
-             if (combinedText.includes(skill)) matchCount++
+             matchesText = combinedText.includes(skill)
+             if (title.includes(skill) || tags.some(t => t.includes(skill))) titleMatch = true
           }
+          
+          if (matchesText) matchCount++
         }
         
-        // Require at least 2 matching skills, or 20% of the user's skills
+        // Stricter matching: Must have at least 1 skill in the title/tags (Field of Work)
+        // AND must have at least 2 matching skills total (or 20%).
         const requiredMatches = Math.min(2, Math.ceil(userSkillsLower.length * 0.2))
         
-        if (matchCount >= requiredMatches) {
-          // Give CV-based jobs a base score boost
-          job.relevanceScore += (matchCount * 10)
+        if (titleMatch && matchCount >= requiredMatches) {
+          job.relevanceScore += (matchCount * 10) + 20 // Bonus for title match
           return true
         }
         return false
