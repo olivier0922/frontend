@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createApplication } from '@/app/actions/applications'
+
 import { Brain, Bookmark, ExternalLink, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
@@ -12,9 +12,27 @@ export function JobCardActions({ jobId, jobUrl, isSaved: initialSaved = false }:
   const [saved, setSaved] = useState(initialSaved)
   const supabase = createClient()
 
+  const saveApplication = async (status: string) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: existing } = await supabase
+      .from('applications')
+      .select('id')
+      .eq('job_id', jobId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (existing) {
+      await supabase.from('applications').update({ status }).eq('id', existing.id)
+    } else {
+      await supabase.from('applications').insert({ user_id: user.id, job_id: jobId, status })
+    }
+  }
+
   const handleSave = async () => {
     setSaved(true)
-    await createApplication(jobId, 'Saved')
+    await saveApplication('Saved')
   }
 
   const handleAI = async () => {
@@ -23,7 +41,7 @@ export function JobCardActions({ jobId, jobUrl, isSaved: initialSaved = false }:
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
 
-      const res = await fetch('http://127.0.0.1:8001/api/v1/ai/match', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001'}/api/v1/ai/match`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
@@ -110,7 +128,7 @@ export function JobCardActions({ jobId, jobUrl, isSaved: initialSaved = false }:
           {loadingAI ? 'Matching…' : 'AI Match'}
         </button>
 
-        <Link href={jobUrl} target="_blank" onClick={() => createApplication(jobId, 'Applied')} className="flex-1">
+        <Link href={jobUrl} target="_blank" onClick={() => saveApplication('Applied')} className="flex-1">
           <button className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-medium gradient-btn text-white">
             Apply <ExternalLink className="w-2.5 h-2.5" />
           </button>

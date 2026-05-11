@@ -1,19 +1,35 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import { Building2 } from 'lucide-react'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Building2, Loader2 } from 'lucide-react'
 import { StatusUpdater } from './StatusUpdater'
 
-export default async function ApplicationsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export default function ApplicationsPage() {
+  const [applications, setApplications] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
 
-  if (!user) redirect('/login')
+  useEffect(() => {
+    let mounted = true
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-  const { data: applications } = await supabase
-    .from('applications')
-    .select('*, jobs(*)')
-    .eq('user_id', user.id)
-    .order('applied_at', { ascending: false })
+      const { data } = await supabase
+        .from('applications')
+        .select('*, jobs(*)')
+        .eq('user_id', user.id)
+        .order('applied_at', { ascending: false })
+
+      if (mounted) {
+        setApplications(data || [])
+        setLoading(false)
+      }
+    }
+    fetchData()
+    return () => { mounted = false }
+  }, [supabase])
 
   const columns = [
     { key: 'Saved', color: 'from-slate-400 to-slate-500' },
@@ -22,6 +38,14 @@ export default async function ApplicationsPage() {
     { key: 'Offer', color: 'from-emerald-400 to-green-500' },
     { key: 'Rejected', color: 'from-red-400 to-rose-500' },
   ]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen p-6 lg:p-8">

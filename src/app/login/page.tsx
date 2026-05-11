@@ -1,17 +1,103 @@
+'use client'
+
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { login } from '@/app/actions/auth'
-import { Button } from '@/components/ui/button'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Sparkles, ArrowLeft } from 'lucide-react'
+import { Sparkles, ArrowLeft, Loader2 } from 'lucide-react'
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ message: string }>
-}) {
-  const message = (await searchParams).message
+function LoginForm() {
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const supabase = createClient()
 
+  const message = searchParams.get('message')
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    setErrorMsg('')
+    
+    const formData = new FormData(e.currentTarget)
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      setErrorMsg(error.message)
+      setLoading(false)
+    } else {
+      router.push('/dashboard')
+    }
+  }
+
+  return (
+    <form onSubmit={handleLogin}>
+      <div className="space-y-1 mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+        <p className="text-sm text-muted-foreground">
+          Enter your credentials to access your dashboard
+        </p>
+      </div>
+
+      {(message || errorMsg) && (
+        <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-red-400">
+          {errorMsg || message}
+        </div>
+      )}
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            required
+            className="glass-input h-11"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            required
+            className="glass-input h-11"
+          />
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full gradient-btn text-white font-semibold py-3 rounded-xl mt-6 text-sm flex justify-center items-center gap-2"
+      >
+        {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+        {loading ? 'Signing in...' : 'Sign in'}
+      </button>
+
+      <p className="text-sm text-center text-muted-foreground mt-6">
+        Don&apos;t have an account?{' '}
+        <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
+          Sign up
+        </Link>
+      </p>
+    </form>
+  )
+}
+
+export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4">
       <div className="mesh-bg" />
@@ -36,58 +122,9 @@ export default async function LoginPage({
 
         {/* Card */}
         <div className="glass-card rounded-2xl p-8">
-          <form action={login}>
-            <div className="space-y-1 mb-6">
-              <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-              <p className="text-sm text-muted-foreground">
-                Enter your credentials to access your dashboard
-              </p>
-            </div>
-
-            {message && (
-              <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-red-400">
-                {message}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  className="glass-input h-11"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="glass-input h-11"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full gradient-btn text-white font-semibold py-3 rounded-xl mt-6 text-sm"
-            >
-              Sign in
-            </button>
-
-            <p className="text-sm text-center text-muted-foreground mt-6">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
-                Sign up
-              </Link>
-            </p>
-          </form>
+          <Suspense fallback={<div className="flex justify-center p-4"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </div>

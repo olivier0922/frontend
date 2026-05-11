@@ -44,70 +44,77 @@ export function JobDetailDrawer({ job, isSaved, onClose }: {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] animate-fade-in" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] animate-fade-in" onClick={onClose} />
       
       {/* Drawer */}
-      <div className="fixed right-0 top-0 bottom-0 w-full max-w-[560px] bg-[#0c0c16] border-l border-white/[0.08] z-[70] flex flex-col drawer-slide-in overflow-hidden shadow-2xl">
+      <div className="fixed right-0 top-0 bottom-0 w-full max-w-[600px] bg-[#030305]/95 backdrop-blur-2xl border-l border-white/[0.08] z-[70] flex flex-col drawer-slide-in overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
         {/* Header */}
-        <div className="shrink-0 p-6 border-b border-white/[0.06]">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg">
+        <div className="shrink-0 p-8 border-b border-white/[0.06] relative overflow-hidden">
+          {/* Subtle Background Glow */}
+          <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+          <div className="relative flex items-start justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center text-white text-xl font-bold shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-white/10 shrink-0">
                 {initials}
               </div>
               <div>
-                <h2 className="text-lg font-bold leading-tight">{job.title}</h2>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
-                  <Building2 className="w-3.5 h-3.5" />
-                  <span>{job.company}</span>
-                  <span className="text-white/10">·</span>
-                  <Clock className="w-3 h-3" />
+                <h2 className="text-2xl font-bold leading-tight tracking-tight mb-1">{job.title}</h2>
+                <div className="flex items-center gap-2.5 text-[14px] text-muted-foreground font-medium">
+                  <Building2 className="w-4 h-4 text-primary/70" />
+                  <span className="text-foreground/90">{job.company}</span>
+                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                  <Clock className="w-3.5 h-3.5" />
                   <span>{timeAgo(job.created_at)}</span>
                 </div>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/[0.05] transition-colors">
-              <X className="w-5 h-5 text-muted-foreground" />
+            <button onClick={onClose} className="p-2.5 rounded-xl hover:bg-white/[0.08] text-muted-foreground hover:text-foreground transition-all duration-200 backdrop-blur-md bg-white/[0.02] border border-white/[0.05]">
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Quick Info Chips */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 relative">
             {job.location && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg bg-white/[0.04] text-muted-foreground border border-white/[0.06]">
-                <MapPin className="w-3.5 h-3.5" />{job.location}
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-white/[0.04] text-muted-foreground border border-white/[0.08]">
+                <MapPin className="w-3.5 h-3.5 text-muted-foreground/70" />{job.location}
               </span>
             )}
             {job.remote && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg bg-indigo-500/[0.08] text-indigo-300 border border-indigo-500/[0.15]">
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-lg bg-indigo-500/[0.08] text-indigo-300 border border-indigo-500/[0.15]">
                 <Globe className="w-3.5 h-3.5" />Remote
               </span>
             )}
             {job.salary && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg bg-emerald-500/[0.08] text-emerald-300 border border-emerald-500/[0.15]">
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-lg bg-emerald-500/[0.08] text-emerald-300 border border-emerald-500/[0.15]">
                 💰 {job.salary}
               </span>
             )}
             {job.job_type && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-500/[0.08] text-amber-300 border border-amber-500/[0.15]">
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-bold px-3 py-1.5 rounded-lg bg-amber-500/[0.08] text-amber-300 border border-amber-500/[0.15]">
                 {job.job_type}
               </span>
             )}
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg bg-white/[0.04] text-muted-foreground border border-white/[0.06]">
+            <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-white/[0.04] text-muted-foreground border border-white/[0.08]">
               Source: {job.source}
             </span>
           </div>
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
           {/* Tags */}
           {job.tags && job.tags.length > 0 && (
             <div>
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Skills & Tags</h4>
-              <div className="flex flex-wrap gap-1.5">
+              <h4 className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <Tag className="w-3.5 h-3.5" /> Skills & Tags
+              </h4>
+              <div className="flex flex-wrap gap-2">
                 {job.tags.map(tag => (
-                  <span key={tag} className="chip">{tag}</span>
+                  <span key={tag} className="text-[12px] font-medium px-3 py-1.5 rounded-lg bg-white/[0.03] text-muted-foreground border border-white/[0.08] hover:bg-white/[0.06] transition-colors">
+                    {tag}
+                  </span>
                 ))}
               </div>
             </div>
@@ -115,15 +122,17 @@ export function JobDetailDrawer({ job, isSaved, onClose }: {
 
           {/* Description */}
           <div>
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Job Description</h4>
-            <div className="text-sm text-foreground/85 leading-relaxed whitespace-pre-wrap break-words">
+            <h4 className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <ExternalLink className="w-3.5 h-3.5" /> Job Description
+            </h4>
+            <div className="text-[15px] text-foreground/80 leading-relaxed whitespace-pre-wrap break-words font-medium">
               {job.description}
             </div>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="shrink-0 p-6 border-t border-white/[0.06] bg-[#0c0c16]">
+        <div className="shrink-0 p-6 sm:p-8 border-t border-white/[0.08] bg-[#030305]/80 backdrop-blur-xl relative z-10">
           <JobCardActions jobId={job.id} jobUrl={job.url} isSaved={isSaved} />
         </div>
       </div>

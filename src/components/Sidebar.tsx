@@ -1,9 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Sparkles, LayoutDashboard, FileText, Kanban, LogOut } from 'lucide-react'
-import { logout } from '@/app/actions/auth'
+import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Jobs' },
@@ -13,6 +13,13 @@ const navItems = [
 
 export function Sidebar({ userEmail }: { userEmail: string }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const supabase = createClient()
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-[220px] bg-[#0c0c16]/95 border-r border-white/[0.05] flex flex-col z-50">
@@ -50,15 +57,13 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
         <div className="px-3 py-1.5 text-[11px] text-muted-foreground/60 truncate">
           {userEmail}
         </div>
-        <form action={logout}>
-          <button
-            type="submit"
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-muted-foreground hover:text-red-400 hover:bg-red-500/[0.05] transition-all duration-150"
-          >
-            <LogOut className="w-4 h-4" />
-            Log out
-          </button>
-        </form>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-muted-foreground hover:text-red-400 hover:bg-red-500/[0.05] transition-all duration-150"
+        >
+          <LogOut className="w-4 h-4" />
+          Log out
+        </button>
       </div>
     </aside>
   )

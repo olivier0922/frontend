@@ -31,7 +31,7 @@ export function HeroSearch({ filters, setFilters, totalResults, availableSources
     return () => clearTimeout(timeout)
   }, [localWhat, setFilters])
 
-  const hasActiveFilters = filters.remoteOnly || filters.jobType !== 'All' || filters.datePosted !== 'all' || filters.sources.length > 0
+  const hasActiveFilters = filters.remoteOnly || filters.jobType !== 'All' || filters.datePosted !== 'all' || filters.sources.length > 0 || localWhat
 
   const clearAllFilters = () => {
     setLocalWhat('')
@@ -39,28 +39,31 @@ export function HeroSearch({ filters, setFilters, totalResults, availableSources
   }
 
   return (
-    <div className="w-full space-y-3">
-      {/* Search Bar */}
-      <div className="flex bg-[#0c0c16] rounded-2xl border border-white/[0.08] shadow-2xl overflow-hidden glass-card">
-        <div className="flex-1 relative flex items-center">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <input type="text" placeholder="Job title, company, skill, or location..." value={localWhat} onChange={(e) => setLocalWhat(e.target.value)}
-            className="w-full h-14 pl-12 pr-4 bg-transparent text-base placeholder:text-muted-foreground/50 focus:outline-none focus:bg-white/[0.02] transition-colors" />
-          {localWhat && <button onClick={() => setLocalWhat('')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-white/[0.06]"><X className="w-4 h-4 text-muted-foreground" /></button>}
+    <div className="w-full space-y-4">
+      {/* Premium Search Bar */}
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-fuchsia-500/30 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
+        <div className="relative flex bg-[#0c0c16]/80 backdrop-blur-xl rounded-2xl border border-white/[0.1] shadow-2xl overflow-hidden glass-card">
+          <div className="flex-1 relative flex items-center">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-[22px] w-[22px] text-primary" />
+            <input type="text" placeholder="Job title, company, skill, or location..." value={localWhat} onChange={(e) => setLocalWhat(e.target.value)}
+              className="w-full h-[60px] pl-[52px] pr-4 bg-transparent text-[17px] font-medium placeholder:text-muted-foreground/60 focus:outline-none focus:bg-white/[0.03] transition-colors" />
+            {localWhat && <button onClick={() => setLocalWhat('')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-white/[0.08] transition-colors"><X className="w-5 h-5 text-muted-foreground hover:text-foreground" /></button>}
+          </div>
+          <button onClick={() => setFilters(f => ({ ...f, remoteOnly: !f.remoteOnly }))}
+            className={`h-[60px] px-8 font-bold flex items-center justify-center gap-2.5 transition-all duration-300 shrink-0 border-l border-white/[0.08] ${filters.remoteOnly ? 'gradient-btn text-white' : 'bg-transparent text-muted-foreground hover:text-foreground hover:bg-white/[0.05]'}`}>
+            <Globe className={`w-5 h-5 ${filters.remoteOnly ? 'text-white' : 'text-primary/70'}`} />Remote
+          </button>
         </div>
-        <button onClick={() => setFilters(f => ({ ...f, remoteOnly: !f.remoteOnly }))}
-          className={`h-14 px-6 font-semibold flex items-center justify-center gap-2 transition-all shrink-0 border-l border-white/[0.08] ${filters.remoteOnly ? 'bg-primary text-white' : 'hover:bg-white/[0.04] text-muted-foreground hover:text-foreground'}`}>
-          <Globe className={`w-5 h-5 ${filters.remoteOnly ? 'text-white' : ''}`} />Remote
-        </button>
       </div>
 
       {/* Quick Search Suggestions (only when no search query) */}
       {!localWhat && (
-        <div className="flex items-center gap-2 px-1 flex-wrap">
-          <span className="text-xs text-muted-foreground/50 mr-1">Popular:</span>
+        <div className="flex items-center gap-2 px-2 flex-wrap animate-fade-in">
+          <span className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider mr-1">Trending</span>
           {POPULAR_SEARCHES.map(term => (
             <button key={term} onClick={() => setLocalWhat(term)}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-muted-foreground hover:text-foreground hover:bg-white/[0.06] hover:border-primary/20 transition-all">
+              className="text-[11px] font-semibold px-3 py-1.5 rounded-full bg-white/[0.02] border border-white/[0.08] text-muted-foreground hover:text-foreground hover:bg-white/[0.08] hover:border-primary/30 transition-all duration-200">
               {term}
             </button>
           ))}
@@ -68,33 +71,37 @@ export function HeroSearch({ filters, setFilters, totalResults, availableSources
       )}
 
       {/* Filter Bar */}
-      <div className="flex items-center gap-3 px-1 flex-wrap">
+      <div className="flex items-center gap-4 px-2 flex-wrap">
         {/* Job Type Chips */}
-        <div className="flex items-center gap-1">
-          <Briefcase className="w-3.5 h-3.5 text-muted-foreground mr-1" />
+        <div className="flex items-center gap-1.5">
+          <div className="w-6 h-6 rounded-md bg-white/[0.04] flex items-center justify-center border border-white/[0.08] mr-1">
+            <Briefcase className="w-3.5 h-3.5 text-primary/80" />
+          </div>
           {JOB_TYPES.map(type => (
             <button key={type} onClick={() => setFilters(f => ({ ...f, jobType: type }))}
-              className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border transition-all ${
+              className={`text-[12px] font-medium px-3 py-1.5 rounded-lg transition-all duration-200 ${
                 filters.jobType === type
-                  ? 'bg-primary/15 text-primary border-primary/30'
-                  : 'bg-white/[0.02] border-white/[0.06] text-muted-foreground hover:text-foreground hover:bg-white/[0.05]'
+                  ? 'bg-primary/20 text-primary border border-primary/40 shadow-[0_0_10px_rgba(99,102,241,0.2)]'
+                  : 'bg-transparent text-muted-foreground border border-transparent hover:text-foreground hover:bg-white/[0.05]'
               }`}>
               {type}
             </button>
           ))}
         </div>
 
-        <div className="w-px h-5 bg-white/[0.08]" />
+        <div className="w-px h-6 bg-white/[0.1]" />
 
         {/* Date Filter Chips */}
-        <div className="flex items-center gap-1">
-          <Calendar className="w-3.5 h-3.5 text-muted-foreground mr-1" />
+        <div className="flex items-center gap-1.5">
+          <div className="w-6 h-6 rounded-md bg-white/[0.04] flex items-center justify-center border border-white/[0.08] mr-1">
+            <Calendar className="w-3.5 h-3.5 text-primary/80" />
+          </div>
           {DATE_OPTIONS.map(opt => (
             <button key={opt.value} onClick={() => setFilters(f => ({ ...f, datePosted: opt.value }))}
-              className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border transition-all ${
+              className={`text-[12px] font-medium px-3 py-1.5 rounded-lg transition-all duration-200 ${
                 filters.datePosted === opt.value
-                  ? 'bg-primary/15 text-primary border-primary/30'
-                  : 'bg-white/[0.02] border-white/[0.06] text-muted-foreground hover:text-foreground hover:bg-white/[0.05]'
+                  ? 'bg-primary/20 text-primary border border-primary/40 shadow-[0_0_10px_rgba(99,102,241,0.2)]'
+                  : 'bg-transparent text-muted-foreground border border-transparent hover:text-foreground hover:bg-white/[0.05]'
               }`}>
               {opt.label}
             </button>
@@ -102,15 +109,17 @@ export function HeroSearch({ filters, setFilters, totalResults, availableSources
         </div>
 
         {/* Results + Clear */}
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-3 ml-auto">
           {hasActiveFilters && (
-            <button onClick={clearAllFilters} className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all flex items-center gap-1">
-              <X className="w-3 h-3" />Clear
+            <button onClick={clearAllFilters} className="text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200 flex items-center gap-1.5">
+              <X className="w-3.5 h-3.5" />Reset
             </button>
           )}
-          <span className="text-sm font-medium text-muted-foreground">
-            <span className="text-foreground font-semibold">{totalResults}</span> jobs
-          </span>
+          <div className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08]">
+            <span className="text-[12px] font-medium text-muted-foreground">
+              <span className="text-foreground font-bold">{totalResults.toLocaleString()}</span> jobs
+            </span>
+          </div>
         </div>
       </div>
     </div>

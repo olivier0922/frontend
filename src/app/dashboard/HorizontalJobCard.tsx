@@ -53,33 +53,85 @@ export function HorizontalJobCard({ job, isSaved, onClick }: {
 
   return (
     <div onClick={onClick}
-      className="glass-card rounded-xl p-5 flex gap-4 group transition-all duration-200 hover:bg-white/[0.05] cursor-pointer">
-      <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${companyColor(job.company)} flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-lg`}>
-        {initials}
-      </div>
-      <div className="flex-1 min-w-0 flex flex-col justify-between">
-        <div>
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="font-semibold text-base leading-snug group-hover:text-primary transition-colors line-clamp-1">{job.title}</h3>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {showMatch && <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase tracking-wide"><Sparkles className="w-3 h-3" />Match</span>}
-              {isNew && !showMatch && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">New</span>}
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <Building2 className="w-3.5 h-3.5 shrink-0 text-foreground/50" />
-            <span className="font-medium text-foreground/80">{job.company}</span>
-            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md border ${sourceColor(job.source)}`}>{job.source}</span>
-          </div>
-          <p className="text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed mb-3 max-w-2xl">{job.description}</p>
+      className="relative group cursor-pointer animate-fade-in block">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-violet-500/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
+      <div className="relative glass-card rounded-2xl p-5 sm:p-6 flex gap-4 sm:gap-5 transition-all duration-300 group-hover:bg-white/[0.04] group-hover:border-primary/20">
+        
+        {/* Company Logo / Avatar */}
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${companyColor(job.company)} flex items-center justify-center text-white text-base sm:text-lg font-bold shrink-0 shadow-lg border border-white/10 relative overflow-hidden group-hover:scale-105 transition-transform duration-300`}>
+          <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300" />
+          <span className="relative z-10">{initials}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {job.location && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="w-3.5 h-3.5" />{job.location.length > 35 ? job.location.substring(0, 35) + '…' : job.location}</span>}
-          {job.remote && <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-md bg-indigo-500/[0.08] text-indigo-300 border border-indigo-500/[0.15]"><Globe className="w-3 h-3" />Remote</span>}
-          {job.salary && <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-500/[0.08] text-emerald-300 border border-emerald-500/[0.15]">💰 {job.salary.length > 30 ? job.salary.substring(0, 30) + '…' : job.salary}</span>}
-          {job.job_type && job.job_type !== 'Full-time' && <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-md bg-amber-500/[0.08] text-amber-300 border border-amber-500/[0.15]">{job.job_type}</span>}
-          {job.tags?.slice(0, 3).map(tag => <span key={tag} className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-white/[0.04] text-muted-foreground/70 border border-white/[0.06]"><Tag className="w-2.5 h-2.5" />{tag}</span>)}
-          <span className="text-[11px] text-muted-foreground/50 flex items-center gap-1 ml-auto"><Clock className="w-3 h-3" />{timeAgo(job.created_at)}</span>
+
+        <div className="flex-1 min-w-0 flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between gap-3 mb-1.5">
+              <h3 className="font-bold text-[17px] sm:text-[19px] leading-snug group-hover:text-primary transition-colors line-clamp-1 tracking-tight">
+                {job.title}
+              </h3>
+              <div className="flex items-center gap-2 shrink-0 pt-0.5">
+                {showMatch && (
+                  <span className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-md bg-gradient-to-r from-primary/20 to-violet-500/20 text-primary border border-primary/30 uppercase tracking-widest shadow-[0_0_10px_rgba(99,102,241,0.2)]">
+                    <Sparkles className="w-3 h-3 fill-primary/40" />Match
+                  </span>
+                )}
+                {isNew && !showMatch && (
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">
+                    New
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 text-[13px] sm:text-sm text-muted-foreground mb-3 font-medium">
+              <div className="flex items-center gap-1.5 text-foreground/80">
+                <Building2 className="w-4 h-4 text-primary/70" />
+                {job.company}
+              </div>
+              <span className="w-1 h-1 rounded-full bg-white/20" />
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${sourceColor(job.source)}`}>
+                {job.source}
+              </span>
+            </div>
+
+            <p className="text-[13px] text-muted-foreground/70 line-clamp-2 leading-relaxed mb-4 max-w-3xl">
+              {job.description}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 mt-auto">
+            {job.location && (
+              <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground/80">
+                <MapPin className="w-3.5 h-3.5 text-muted-foreground/60" />
+                {job.location.length > 35 ? job.location.substring(0, 35) + '…' : job.location}
+              </span>
+            )}
+            {job.remote && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-indigo-500/[0.08] text-indigo-300 border border-indigo-500/[0.15]">
+                <Globe className="w-3 h-3" />Remote
+              </span>
+            )}
+            {job.salary && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/[0.08] text-emerald-400 border border-emerald-500/[0.15]">
+                💰 {job.salary.length > 30 ? job.salary.substring(0, 30) + '…' : job.salary}
+              </span>
+            )}
+            {job.job_type && job.job_type !== 'Full-time' && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-500/[0.08] text-amber-300 border border-amber-500/[0.15]">
+                {job.job_type}
+              </span>
+            )}
+            {job.tags?.slice(0, 3).map(tag => (
+              <span key={tag} className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-lg bg-white/[0.03] text-muted-foreground/70 border border-white/[0.06] hover:bg-white/[0.06] transition-colors">
+                <Tag className="w-2.5 h-2.5 opacity-50" />{tag}
+              </span>
+            ))}
+            
+            <span className="text-[11px] font-medium text-muted-foreground/40 flex items-center gap-1 ml-auto">
+              <Clock className="w-3 h-3" />
+              {timeAgo(job.created_at)}
+            </span>
+          </div>
         </div>
       </div>
     </div>
