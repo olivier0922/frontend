@@ -21,6 +21,7 @@ export interface FilterState {
   searchQuery: string // "What"
   locationQuery: string // "Where"
   remoteOnly: boolean
+  strictCVMatch: boolean
   mapRadiusKm: number
   mapCenter: [number, number] | null
   jobType: string       // "All", "Internship", "Full-time", "New Grad", "Contract"
@@ -33,6 +34,7 @@ export const DEFAULT_FILTERS: FilterState = {
   searchQuery: '',
   locationQuery: '',
   remoteOnly: false,
+  strictCVMatch: true, // Default to true if user has CV! We will enforce it via UI.
   mapRadiusKm: 50,
   mapCenter: null,
   jobType: 'All',
@@ -87,7 +89,7 @@ function fuzzyMatch(term: string, words: string[]): boolean {
   })
 }
 
-export function useJobFilters(jobs: Job[], filters: FilterState) {
+export function useJobFilters(jobs: Job[], filters: FilterState, userSkills: string[] = []) {
   return useMemo(() => {
     let results: ScoredJob[] = jobs.map(j => ({ ...j, relevanceScore: 0 }))
 
@@ -140,7 +142,41 @@ export function useJobFilters(jobs: Job[], filters: FilterState) {
       })
     }
 
-    // 6. Intelligent Scoring Engine ("What" search)
+    // 6. Strict CV Matching
+    if (filters.strictCVMatch && userSkills && userSkills.length > 0) {
+      const userSkillsLower = userSkills.map(s => s.toLowerCase().trim())
+      
+      results = results.filter(job => {
+        const title = job.title.toLowerCase()
+        const desc = job.description.toLowerCase()
+        const tags = (job.tags || []).map(t => t.toLowerCase())
+        const combinedText = `${title} ${desc} ${tags.join(' ')}`
+        
+        // Count how many user skills appear in the job text
+        let matchCount = 0
+        for (const skill of userSkillsLower) {
+          // Require word boundary for short skills like 'C' or 'R'
+          if (skill.length <= 2) {
+             const regex = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+             if (regex.test(combinedText)) matchCount++
+          } else {
+             if (combinedText.includes(skill)) matchCount++
+          }
+        }
+        
+        // Require at least 2 matching skills, or 20% of the user's skills
+        const requiredMatches = Math.min(2, Math.ceil(userSkillsLower.length * 0.2))
+        
+        if (matchCount >= requiredMatches) {
+          // Give CV-based jobs a base score boost
+          job.relevanceScore += (matchCount * 10)
+          return true
+        }
+        return false
+      })
+    }
+
+    // 7. Intelligent Scoring Engine ("What" search)
     if (filters.searchQuery.trim() !== '') {
       const query = filters.searchQuery.toLowerCase().trim()
       // Tokenize the search query
@@ -215,7 +251,7 @@ export function useJobFilters(jobs: Job[], filters: FilterState) {
     }
 
     return results
-  }, [jobs, filters])
+  }, [jobs, filters, userSkills])
 }
 
 // Client-side geocoding hook for "Where" input

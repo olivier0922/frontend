@@ -10,14 +10,14 @@ import { JobDetailDrawer } from './JobDetailDrawer'
 const JOBS_PER_PAGE = 30
 const LOAD_MORE_COUNT = 20
 
-export function DashboardClient({ initialJobs, savedJobIds }: { initialJobs: Job[]; savedJobIds: Set<string> }) {
+export function DashboardClient({ initialJobs, savedJobIds, userSkills }: { initialJobs: Job[]; savedJobIds: Set<string>; userSkills: string[] }) {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
   const [visibleCount, setVisibleCount] = useState(JOBS_PER_PAGE)
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const filteredJobs = useJobFilters(initialJobs, filters)
+  const filteredJobs = useJobFilters(initialJobs, filters, userSkills)
 
   const visibleJobs = useMemo(() => filteredJobs.slice(0, visibleCount), [filteredJobs, visibleCount])
   const hasMore = visibleCount < filteredJobs.length

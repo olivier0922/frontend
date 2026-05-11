@@ -9,6 +9,7 @@ export default function DashboardPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [jobs, setJobs] = useState<any[]>([])
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set())
+  const [userSkills, setUserSkills] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
@@ -50,9 +51,20 @@ export default function DashboardPage() {
       
       const savedIds = new Set(savedApps?.map(a => a.job_id) || [])
 
+      // Fetch user's CV skills
+      const { data: resumes } = await supabase
+        .from('resumes')
+        .select('extracted_skills')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        
+      const userSkills = resumes?.[0]?.extracted_skills || []
+
       if (mounted) {
         setJobs(allJobs)
         setSavedJobIds(savedIds)
+        setUserSkills(userSkills)
         setLoading(false)
       }
     }
@@ -78,6 +90,7 @@ export default function DashboardPage() {
       <DashboardClient 
         initialJobs={jobs} 
         savedJobIds={savedJobIds} 
+        userSkills={userSkills} 
       />
     </div>
   )
