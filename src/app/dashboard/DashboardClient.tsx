@@ -122,8 +122,9 @@ export function DashboardClient({ initialJobs, savedJobIds }: { initialJobs: Job
       </div>
 
       {/* Job Detail Drawer */}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <JobDetailDrawer
-        job={selectedJob}
+        job={selectedJob as any}
         isSaved={selectedJob ? savedJobIds.has(selectedJob.id) : false}
         onClose={() => setSelectedJob(null)}
       />

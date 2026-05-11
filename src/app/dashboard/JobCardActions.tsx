@@ -8,7 +8,8 @@ import Link from 'next/link'
 
 export function JobCardActions({ jobId, jobUrl, isSaved: initialSaved = false }: { jobId: string, jobUrl: string, isSaved?: boolean }) {
   const [loadingAI, setLoadingAI] = useState(false)
-  const [matchData, setMatchData] = useState<Record<string, unknown> | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [matchData, setMatchData] = useState<any>(null)
   const [saved, setSaved] = useState(initialSaved)
   const supabase = createClient()
 

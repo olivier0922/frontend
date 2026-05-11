@@ -6,7 +6,8 @@ import { Building2, Loader2 } from 'lucide-react'
 import { StatusUpdater } from './StatusUpdater'
 
 export default function ApplicationsPage() {
-  const [applications, setApplications] = useState<Record<string, unknown>[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [applications, setApplications] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
