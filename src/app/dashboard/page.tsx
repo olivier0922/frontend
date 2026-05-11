@@ -28,7 +28,7 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false })
         .limit(1)
         
-      const userSkills = resumes?.[0]?.extracted_skills || []
+      const userSkills: string[] = resumes?.[0]?.extracted_skills || []
 
       // 2. Fetch jobs, applying Server-Side CV filtering if skills exist
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
