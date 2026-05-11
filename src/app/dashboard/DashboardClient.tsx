@@ -79,7 +79,6 @@ export function DashboardClient({ initialJobs, savedJobIds }: { initialJobs: Job
                 <HorizontalJobCard
                   key={job.id}
                   job={job}
-                  isSaved={savedJobIds.has(job.id)}
                   onClick={() => setSelectedJob(job)}
                 />
               ))}
