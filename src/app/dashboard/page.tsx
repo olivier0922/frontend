@@ -30,29 +30,37 @@ export default function DashboardPage() {
         
       const userSkills: string[] = resumes?.[0]?.extracted_skills || []
 
-      // 2. Fetch jobs, applying Server-Side CV filtering if skills exist
+      // 2. Fetch jobs in batches, applying Server-Side CV filtering if skills exist
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let allJobs: any[] = []
+      const batchSize = 1000
+      let from = 0
+      let hasMore = true
       
-      let query = supabase
-        .from('jobs')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
-      // If user has skills, push the "Field of Work" strictness to the database level
-      // to avoid downloading 50,000 irrelevant jobs to the browser.
-      if (userSkills.length > 0) {
-        // Create an OR string like: title.ilike.%react%,title.ilike.%node%
-        const orConditions = userSkills.map(skill => `title.ilike.%${skill}%`).join(',')
-        query = query.or(orConditions)
-        query = query.limit(2000) // limit to top 2000 matched jobs
-      } else {
-        query = query.limit(1000) // fallback limit if no CV
-      }
+      const orConditions = userSkills.length > 0 
+        ? userSkills.map(skill => `title.ilike.%${skill}%`).join(',')
+        : null
 
-      const { data: batch } = await query
-      if (batch) {
-        allJobs = batch
+      while (hasMore && allJobs.length < 5000) { // Safety cap at 5000 jobs
+        let query = supabase
+          .from('jobs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .range(from, from + batchSize - 1)
+          
+        if (orConditions) {
+          query = query.or(orConditions)
+        }
+
+        const { data: batch } = await query
+
+        if (batch && batch.length > 0) {
+          allJobs = allJobs.concat(batch)
+          from += batchSize
+          hasMore = batch.length === batchSize
+        } else {
+          hasMore = false
+        }
       }
 
       // 3. Fetch user's saved job IDs
