@@ -5,6 +5,81 @@ import { UploadCloud, FileText, CheckCircle2, File, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
+// Comprehensive tech skill list for client-side extraction
+const KNOWN_SKILLS = [
+  // Languages
+  'Python', 'JavaScript', 'TypeScript', 'Java', 'C++', 'C#', 'Go', 'Rust', 'Ruby', 'PHP', 'Swift',
+  'Kotlin', 'Scala', 'R', 'MATLAB', 'Perl', 'Haskell', 'Lua', 'Dart', 'Objective-C', 'Shell',
+  'Bash', 'PowerShell', 'SQL', 'HTML', 'CSS', 'Sass', 'LESS',
+  // Frontend
+  'React', 'Angular', 'Vue', 'Vue.js', 'Next.js', 'Nuxt', 'Svelte', 'jQuery', 'Redux', 'Tailwind',
+  'Bootstrap', 'Material UI', 'Chakra UI', 'Webpack', 'Vite', 'Storybook',
+  // Backend
+  'Node.js', 'Express', 'Django', 'Flask', 'FastAPI', 'Spring', 'Spring Boot', '.NET', 'ASP.NET',
+  'Rails', 'Ruby on Rails', 'Laravel', 'NestJS', 'GraphQL', 'REST', 'gRPC',
+  // Cloud & DevOps
+  'AWS', 'Azure', 'GCP', 'Google Cloud', 'Docker', 'Kubernetes', 'Terraform', 'Ansible',
+  'Jenkins', 'CI/CD', 'GitHub Actions', 'GitLab CI', 'CircleCI', 'Helm', 'Prometheus', 'Grafana',
+  'Nginx', 'Apache', 'Linux', 'Unix',
+  // Databases
+  'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'Elasticsearch', 'DynamoDB', 'Cassandra',
+  'SQLite', 'Oracle', 'SQL Server', 'Firebase', 'Supabase', 'Neo4j', 'InfluxDB',
+  // Data & ML
+  'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch', 'Scikit-learn', 'Pandas',
+  'NumPy', 'Keras', 'OpenCV', 'NLP', 'Computer Vision', 'Data Science', 'Big Data',
+  'Spark', 'Hadoop', 'Airflow', 'dbt', 'Tableau', 'Power BI', 'Jupyter',
+  // Mobile
+  'React Native', 'Flutter', 'iOS', 'Android', 'SwiftUI', 'Jetpack Compose', 'Xamarin',
+  // Tools & Practices
+  'Git', 'GitHub', 'GitLab', 'Bitbucket', 'Jira', 'Confluence', 'Agile', 'Scrum',
+  'TDD', 'Unit Testing', 'Jest', 'Cypress', 'Selenium', 'Figma', 'Postman',
+  // Security
+  'Cybersecurity', 'OAuth', 'JWT', 'SSL', 'Encryption', 'Penetration Testing',
+  // Other
+  'Microservices', 'Serverless', 'WebSocket', 'RabbitMQ', 'Kafka', 'Celery',
+  'System Design', 'Design Patterns', 'Data Structures', 'Algorithms', 'OOP',
+  'Embedded Systems', 'IoT', 'Blockchain', 'WebAssembly', 'Three.js',
+]
+
+function extractSkillsFromText(text: string): string[] {
+  const textLower = text.toLowerCase()
+  const found: string[] = []
+
+  for (const skill of KNOWN_SKILLS) {
+    const skillLower = skill.toLowerCase()
+    // For short skills (<=2 chars like C#, R), require word boundary
+    if (skillLower.length <= 2) {
+      const regex = new RegExp(`\\b${skillLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`)
+      if (regex.test(textLower)) found.push(skill)
+    } else {
+      if (textLower.includes(skillLower)) found.push(skill)
+    }
+  }
+
+  return [...new Set(found)]
+}
+
+async function extractTextFromPdf(file: File): Promise<string> {
+  const pdfjsLib = await import('pdfjs-dist')
+  
+  // Use the bundled worker
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`
+
+  const arrayBuffer = await file.arrayBuffer()
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+
+  let fullText = ''
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i)
+    const content = await page.getTextContent()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pageText = content.items.map((item: any) => item.str).join(' ')
+    fullText += pageText + '\n'
+  }
+
+  return fullText.trim()
+}
+
 export default function ResumePage() {
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
@@ -56,27 +131,46 @@ export default function ResumePage() {
         return
       }
 
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001'}/api/v1/resume/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => null)
-        throw new Error(errData?.detail || 'Failed to upload resume')
+      // Parse PDF client-side
+      let parsedText = ''
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        parsedText = await extractTextFromPdf(file)
+      } else {
+        // For DOCX, we'll read as text (basic fallback)
+        parsedText = await file.text()
       }
 
-      const result = await response.json()
-      setSkills(result.skills || [])
+      if (!parsedText || parsedText.trim().length < 20) {
+        throw new Error('Could not extract text from this file. Please try a different PDF.')
+      }
+
+      // Extract skills client-side
+      const extractedSkills = extractSkillsFromText(parsedText)
+
+      // Upload file to Supabase Storage
+      const filePath = `${session.user.id}/${Date.now()}_${file.name}`
+      const fileBuffer = await file.arrayBuffer()
+      
+      await supabase.storage.from('resumes').upload(filePath, fileBuffer, {
+        contentType: file.type,
+        upsert: false,
+      })
+
+      const { data: urlData } = supabase.storage.from('resumes').getPublicUrl(filePath)
+
+      // Store in resumes table
+      await supabase.from('resumes').insert({
+        user_id: session.user.id,
+        file_url: urlData.publicUrl,
+        parsed_text: parsedText.slice(0, 10000), // limit size
+        extracted_skills: extractedSkills,
+      })
+
+      setSkills(extractedSkills)
       setSuccess(true)
 
     } catch (err) {
+      console.error('Resume upload error:', err)
       setError((err as Error).message || 'An error occurred')
     } finally {
       setLoading(false)
@@ -114,7 +208,7 @@ export default function ResumePage() {
                 </div>
                 {skills.length > 0 && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-2">Extracted Skills:</p>
+                    <p className="text-xs text-muted-foreground mb-2">Extracted Skills ({skills.length}):</p>
                     <div className="flex flex-wrap gap-1.5">
                       {skills.map((skill) => (
                         <span
@@ -198,7 +292,7 @@ export default function ResumePage() {
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Uploading & Analyzing...
+                  Analyzing Resume...
                 </>
               ) : (
                 <>
@@ -223,11 +317,11 @@ export default function ResumePage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 mt-0.5 font-medium">2</span>
-              Our AI extracts your technical skills and experience
+              Your resume is parsed directly in your browser — nothing leaves your device until you click upload
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center shrink-0 mt-0.5 font-medium">3</span>
-              Click &quot;AI Match&quot; on any job to see your compatibility score
+              Extracted skills power the &quot;Strict CV Match&quot; filter on the dashboard
             </li>
           </ul>
         </div>
