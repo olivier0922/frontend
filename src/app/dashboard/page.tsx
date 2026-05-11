@@ -20,38 +20,7 @@ export default function DashboardPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Fetch ALL jobs in batches to overcome Supabase 1000-row default limit
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let allJobs: any[] = []
-      const batchSize = 1000
-      let from = 0
-      let hasMore = true
-
-      while (hasMore) {
-        const { data: batch } = await supabase
-          .from('jobs')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .range(from, from + batchSize - 1)
-
-        if (batch && batch.length > 0) {
-          allJobs = allJobs.concat(batch)
-          from += batchSize
-          hasMore = batch.length === batchSize
-        } else {
-          hasMore = false
-        }
-      }
-
-      // Fetch user's saved job IDs
-      const { data: savedApps } = await supabase
-        .from('applications')
-        .select('job_id')
-        .eq('user_id', user.id)
-      
-      const savedIds = new Set(savedApps?.map(a => a.job_id) || [])
-
-      // Fetch user's CV skills
+      // 1. Fetch user's CV skills first
       const { data: resumes } = await supabase
         .from('resumes')
         .select('extracted_skills')
@@ -60,6 +29,39 @@ export default function DashboardPage() {
         .limit(1)
         
       const userSkills = resumes?.[0]?.extracted_skills || []
+
+      // 2. Fetch jobs, applying Server-Side CV filtering if skills exist
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let allJobs: any[] = []
+      
+      let query = supabase
+        .from('jobs')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      // If user has skills, push the "Field of Work" strictness to the database level
+      // to avoid downloading 50,000 irrelevant jobs to the browser.
+      if (userSkills.length > 0) {
+        // Create an OR string like: title.ilike.%react%,title.ilike.%node%
+        const orConditions = userSkills.map(skill => `title.ilike.%${skill}%`).join(',')
+        query = query.or(orConditions)
+        query = query.limit(2000) // limit to top 2000 matched jobs
+      } else {
+        query = query.limit(1000) // fallback limit if no CV
+      }
+
+      const { data: batch } = await query
+      if (batch) {
+        allJobs = batch
+      }
+
+      // 3. Fetch user's saved job IDs
+      const { data: savedApps } = await supabase
+        .from('applications')
+        .select('job_id')
+        .eq('user_id', user.id)
+      
+      const savedIds = new Set(savedApps?.map(a => a.job_id) || [])
 
       if (mounted) {
         setJobs(allJobs)
