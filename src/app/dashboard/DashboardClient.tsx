@@ -19,13 +19,6 @@ export function DashboardClient({ initialJobs, savedJobIds }: { initialJobs: Job
 
   const filteredJobs = useJobFilters(initialJobs, filters)
 
-  // Get unique sources for filter UI
-  const availableSources = useMemo(() => {
-    const srcSet = new Set<string>()
-    initialJobs.forEach(j => srcSet.add(j.source))
-    return Array.from(srcSet).sort()
-  }, [initialJobs])
-
   const visibleJobs = useMemo(() => filteredJobs.slice(0, visibleCount), [filteredJobs, visibleCount])
   const hasMore = visibleCount < filteredJobs.length
 
@@ -66,7 +59,6 @@ export function DashboardClient({ initialJobs, savedJobIds }: { initialJobs: Job
             else setFilters(f)
           }}
           totalResults={filteredJobs.length}
-          availableSources={availableSources}
         />
       </div>
 

@@ -96,6 +96,17 @@ export function useJobFilters(jobs: Job[], filters: FilterState) {
       results = results.filter(job => job.remote)
     }
 
+    // 1.5. Location Text Filter
+    if (filters.locationQuery.trim() !== '') {
+      const locQ = filters.locationQuery.toLowerCase().trim()
+      results = results.filter(job => 
+        (job.location && job.location.toLowerCase().includes(locQ)) || 
+        // If a user types a location but the job is purely "Remote" without a location string, it's a design choice whether to include it.
+        // Let's include jobs where location string contains the query. If they want remote, they can click remote.
+        (job.remote && locQ === 'remote')
+      )
+    }
+
     // 2. Job Type Filter
     if (filters.jobType && filters.jobType !== 'All') {
       results = results.filter(job => job.job_type === filters.jobType)
